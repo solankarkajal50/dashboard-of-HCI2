@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Dashboard</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { colors: { brand: { DEFAULT: '#6366f1' } } } }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" defer></script>
+    <script src="script.js" defer></script>
+    <link rel="icon" href="data:,">
+    <meta name="theme-color" content="#0f172a">
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <div class="grid min-h-screen md:grid-cols-[260px_1fr]">
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-20 w-72 -translate-x-full border-r border-slate-200 bg-white/95 p-3 backdrop-blur transition-transform md:static md:w-[260px] md:translate-x-0 md:bg-white dark:border-slate-800 dark:bg-slate-900/95">
+            <div class="flex items-center gap-2 font-bold">
+                <button id="sidebarToggle" aria-label="Toggle sidebar" title="Toggle sidebar" class="hidden md:inline-flex items-center justify-center rounded-lg border border-transparent bg-slate-100 px-2 py-2 text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700">☰</button>
+                <span>SmartDash</span>
+            </div>
+            <nav class="mt-3 grid gap-1 text-sm">
+                <a class="nav__item is-active cursor-pointer rounded-lg px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800" data-nav="overview">Overview</a>
+                <a class="nav__item cursor-pointer rounded-lg px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800" data-nav="analytics">Analytics</a>
+                <a class="nav__item cursor-pointer rounded-lg px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800" data-nav="sales">Sales</a>
+                <a class="nav__item cursor-pointer rounded-lg px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800" data-nav="customers">Customers</a>
+                <a class="nav__item cursor-pointer rounded-lg px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800" data-nav="timetable">Timetable</a>
+                <a class="nav__item cursor-pointer rounded-lg px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800" data-nav="settings">Settings</a>
+                <a class="nav__item cursor-pointer rounded-lg px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800" data-nav="contact">Contact</a>
+            </nav>
+            <div class="mt-auto hidden md:block">
+                <button id="themeToggle" aria-label="Toggle theme" class="w-full rounded-lg bg-slate-100 px-3 py-2 font-semibold dark:bg-slate-800">Toggle Theme</button>
+            </div>
+        </aside>
+
+        <div class="grid grid-rows-[auto_1fr]">
+            <header class="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-slate-200 bg-white/90 p-3 backdrop-blur dark:border-slate-800 dark:bg-slate-900/90">
+                <div class="flex items-center gap-2">
+                    <button class="only-mobile inline-flex items-center justify-center rounded-lg border border-transparent bg-slate-100 px-2 py-2 text-slate-900 hover:bg-slate-200 md:hidden dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700" id="mobileMenu" aria-label="Open menu">☰</button>
+                    <input id="globalSearch" class="w-56 rounded-lg border border-transparent bg-slate-100 px-3 py-2 outline-none focus:border-brand/50 focus:ring-4 focus:ring-brand/30 dark:bg-slate-800" type="search" placeholder="Search..." aria-label="Search">
+                </div>
+                <div class="flex items-center gap-2">
+                    <button class="inline-flex items-center justify-center rounded-lg border border-transparent bg-slate-100 px-2 py-2 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700" id="notificationsBtn" aria-label="Notifications">🔔</button>
+                    <div class="h-8 w-8 rounded-full bg-gradient-to-br from-brand to-cyan-400"></div>
+                </div>
+            </header>
+
+            <main class="p-4 grid gap-4">
+                <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <div class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                        <div class="text-xs text-slate-500 dark:text-slate-400">Revenue</div>
+                        <div class="mt-1 text-2xl font-bold" id="kpiRevenue">$0</div>
+                        <div class="text-xs text-emerald-500" id="kpiRevenueDelta">0%</div>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                        <div class="text-xs text-slate-500 dark:text-slate-400">Users</div>
+                        <div class="mt-1 text-2xl font-bold" id="kpiUsers">0</div>
+                        <div class="text-xs text-emerald-500" id="kpiUsersDelta">0%</div>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                        <div class="text-xs text-slate-500 dark:text-slate-400">Orders</div>
+                        <div class="mt-1 text-2xl font-bold" id="kpiOrders">0</div>
+                        <div class="text-xs text-emerald-500" id="kpiOrdersDelta">0%</div>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                        <div class="text-xs text-slate-500 dark:text-slate-400">Conversion</div>
+                        <div class="mt-1 text-2xl font-bold" id="kpiConversion">0%</div>
+                        <div class="text-xs text-emerald-500" id="kpiConversionDelta">0%</div>
+                    </div>
+                </section>
+
+                <section class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                    <div class="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+                        <div class="mb-2 flex items-center justify-between">
+                            <h2 class="text-lg font-semibold">Traffic</h2>
+                            <select id="trafficRange" class="rounded-lg border border-transparent bg-slate-100 px-3 py-2 outline-none focus:border-brand/50 focus:ring-4 focus:ring-brand/30 dark:bg-slate-800">
+                                <option value="7">7d</option>
+                                <option value="30" selected>30d</option>
+                                <option value="90">90d</option>
+                            </select>
+                        </div>
+                        <div class="h-40"><canvas id="trafficChart"></canvas></div>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+                        <div class="mb-2"><h2 class="text-lg font-semibold">Sales by Channel</h2></div>
+                        <div class="h-40"><canvas id="channelChart"></canvas></div>
+                    </div>
+                </section>
+
+                <section id="contact" class="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+                    <div class="mb-2"><h2 class="text-lg font-semibold">Contact Us</h2></div>
+                    <form id="contactForm" class="grid gap-3">
+                        <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                            <div class="grid gap-1">
+                                <label for="name" class="text-xs text-slate-500 dark:text-slate-400">Name</label>
+                                <input id="name" name="name" class="rounded-lg border border-transparent bg-slate-100 px-3 py-2 outline-none focus:border-brand/50 focus:ring-4 focus:ring-brand/30 dark:bg-slate-800" type="text" placeholder="Your name" required>
+                            </div>
+                            <div class="grid gap-1">
+                                <label for="email" class="text-xs text-slate-500 dark:text-slate-400">Email</label>
+                                <input id="email" name="email" class="rounded-lg border border-transparent bg-slate-100 px-3 py-2 outline-none focus:border-brand/50 focus:ring-4 focus:ring-brand/30 dark:bg-slate-800" type="email" placeholder="you@example.com" required>
+                            </div>
+                        </div>
+                        <div class="grid gap-1">
+                            <label for="subject" class="text-xs text-slate-500 dark:text-slate-400">Subject</label>
+                            <input id="subject" name="subject" class="rounded-lg border border-transparent bg-slate-100 px-3 py-2 outline-none focus:border-brand/50 focus:ring-4 focus:ring-brand/30 dark:bg-slate-800" type="text" placeholder="How can we help?" required>
+                        </div>
+                        <div class="grid gap-1">
+                            <label for="message" class="text-xs text-slate-500 dark:text-slate-400">Message</label>
+                            <textarea id="message" name="message" rows="5" class="min-h-24 rounded-lg border border-transparent bg-slate-100 px-3 py-2 outline-none focus:border-brand/50 focus:ring-4 focus:ring-brand/30 dark:bg-slate-800" placeholder="Write your message..." required></textarea>
+                        </div>
+                        <div class="flex justify-end">
+                            <button type="submit" class="rounded-lg bg-brand px-4 py-2 font-semibold text-white hover:brightness-110">Send Message</button>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <div class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                        <div class="text-xs text-slate-500 dark:text-slate-400">Next Class</div>
+                        <div class="mt-1 text-2xl font-bold" id="nextClass">—</div>
+                        <div class="text-xs text-slate-500" id="nextClassMeta">—</div>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                        <div class="text-xs text-slate-500 dark:text-slate-400">Attendance</div>
+                        <div class="mt-1 text-2xl font-bold" id="attendancePct">0%</div>
+                        <div class="mt-2 h-2 w-full rounded bg-slate-200 dark:bg-slate-800">
+                            <div id="attendanceBar" class="h-2 rounded bg-emerald-500" style="width:0%"></div>
+                        </div>
+                        <div class="text-xs text-slate-500 mt-1" id="attendanceMeta">0 of 0 days</div>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                        <div class="mb-2 flex items-center justify-between">
+                            <div class="text-xs text-slate-500 dark:text-slate-400">Assignments</div>
+                            <button id="addAssignment" class="rounded-lg bg-slate-100 px-2 py-1 text-sm hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700">+ Add</button>
+                        </div>
+                        <ul id="assignmentsList" class="grid gap-2 text-sm"></ul>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                        <div class="text-xs text-slate-500 dark:text-slate-400">Notes</div>
+                        <textarea id="notesText" rows="4" class="mt-2 w-full rounded-lg border border-transparent bg-slate-100 p-2 outline-none focus:border-brand/50 focus:ring-4 focus:ring-brand/30 dark:bg-slate-800" placeholder="Write a quick note..."></textarea>
+                        <div class="flex justify-end mt-2">
+                            <button id="notesSave" class="rounded-lg bg-brand px-3 py-1.5 text-white text-sm font-semibold hover:brightness-110">Save</button>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="timetable" class="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+                    <div class="mb-2 flex items-center justify-between">
+                        <h2 class="text-lg font-semibold">Student Timetable</h2>
+                        <div class="flex gap-2 items-center">
+                            <select id="timetableWeek" class="rounded-lg border border-transparent bg-slate-100 px-3 py-2 outline-none focus:border-brand/50 focus:ring-4 focus:ring-brand/30 dark:bg-slate-800">
+                                <option value="current" selected>This Week</option>
+                                <option value="next">Next Week</option>
+                            </select>
+                            <button id="timetableExport" class="rounded-lg bg-brand px-3 py-2 text-white font-semibold hover:brightness-110">Export</button>
+                        </div>
+                    </div>
+                    <div class="overflow-auto">
+                        <table id="timetableTable" class="w-full border-collapse text-sm">
+                            <thead>
+                                <tr>
+                                    <th class="sticky top-0 bg-white p-3 text-left dark:bg-slate-900">Time</th>
+                                    <th class="sticky top-0 bg-white p-3 text-left dark:bg-slate-900">Monday</th>
+                                    <th class="sticky top-0 bg-white p-3 text-left dark:bg-slate-900">Tuesday</th>
+                                    <th class="sticky top-0 bg-white p-3 text-left dark:bg-slate-900">Wednesday</th>
+                                    <th class="sticky top-0 bg-white p-3 text-left dark:bg-slate-900">Thursday</th>
+                                    <th class="sticky top-0 bg-white p-3 text-left dark:bg-slate-900">Friday</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 dark:divide-slate-800"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+                    <div class="panel__header">
+                        <h2>Recent Orders</h2>
+                        <div class="panel__actions">
+                            <input id="ordersFilter" class="rounded-lg border border-transparent bg-slate-100 px-3 py-2 outline-none focus:border-brand/50 focus:ring-4 focus:ring-brand/30 dark:bg-slate-800" type="search" placeholder="Filter orders...">
+                        </div>
+                    </div>
+                    <div class="overflow-auto rounded-lg border border-slate-200 dark:border-slate-800">
+                        <table id="ordersTable" aria-label="Recent Orders" class="w-full border-collapse text-sm">
+                            <thead>
+                                <tr>
+                                    <th class="sticky top-0 cursor-pointer bg-white p-3 text-left dark:bg-slate-900" data-sort="id">Order ID</th>
+                                    <th class="sticky top-0 cursor-pointer bg-white p-3 text-left dark:bg-slate-900" data-sort="customer">Customer</th>
+                                    <th class="sticky top-0 cursor-pointer bg-white p-3 text-left dark:bg-slate-900" data-sort="date">Date</th>
+                                    <th class="sticky top-0 cursor-pointer bg-white p-3 text-left dark:bg-slate-900" data-sort="amount">Amount</th>
+                                    <th class="sticky top-0 cursor-pointer bg-white p-3 text-left dark:bg-slate-900" data-sort="status">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 dark:divide-slate-800"></tbody>
+                        </table>
+                    </div>
+                </section>
+                <footer class="text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between px-1 py-2">
+                    <div>SmartDash Student • Contact: <a href="#contact" class="underline">Support</a></div>
+                    <div>Version 1.0.0</div>
+                </footer>
+            </main>
+        </div>
+    </div>
+
+    <div id="overlay" class="fixed inset-0 bg-slate-950/50 opacity-0 pointer-events-none transition md:hidden"></div>
+    <div id="toast" role="status" aria-live="polite" aria-atomic="true" class="fixed right-4 bottom-4 translate-y-2 rounded-lg border border-slate-200 bg-white px-4 py-2 opacity-0 shadow transition dark:border-slate-800 dark:bg-slate-900"></div>
+</body>
+</html>
+
